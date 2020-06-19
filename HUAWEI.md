@@ -19,6 +19,32 @@ list.addAll(set);
 System.out.println(list);
 ```
 
+```java
+import java.util.*;
+
+public class HW3 {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        int n = sc.nextInt();  //输入的个数
+        Random random = new Random();
+//        System.out.println(r);
+        ArrayList<Integer> list = new ArrayList<>();
+        //生成随机数
+        for (int i = 0; i < n; i++) {
+            int r = random.nextInt(1000)+1;  //从1到1000
+            list.add(r);
+        }
+//        System.out.println(list);
+        Collections.sort(list); // 需要在 ArrayList<Integer> list 把 Integer 加上
+        System.out.println(list);
+        HashSet<Object> set = new HashSet<>(list);
+//        System.out.println(set);
+//        list.sort();
+        System.out.println(set);
+    }
+}
+```
+
 ### 4. HW4
 
 注意这个 List 如果想要取出元素的话需要用到get方法
