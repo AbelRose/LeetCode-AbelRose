@@ -76,6 +76,36 @@ Java 用户用户密码加密
 
 https://blog.csdn.net/u013068377/article/details/78921720
 
+- Base64加密算法(编码方式)
+- MD5加密(消息摘要算法，验证信息完整性)
+- 对称加密算法
+- 非对称加密算法
+- 数字签名算法
+- 数字证书
+
+分类:
+
+1. 按加密算法是否需要key被分为两类： 
+   - 不基于key的有: Base64算法、MD5
+   - 基于key的有: 对称加密算法、非对称加密算法、数字签名算法、数字证书、HMAC、RC4(对称加密)
+2. 按加密算法是否可逆被分为两类： 
+   - 单向加密算法(不可解密)：MD5、SHA、HMAC
+   - 非单项加密算法(可解密)：BASE64、对称加密算法、非对称加密算法、数字签名算法、数字证书
+
+
+
+JWT Oauth2 Shiro
+
+
+
+
+
+
+
+
+
+
+
 ```XML
 <!--    权限控制的两种方法  只能使用一种-->
 <security:global-method-security jsr250-annotations="enabled"></security:global-method-security>
@@ -91,27 +121,182 @@ jsr250 不是加密方式
 
 AOP底层实现
 
+底层采用了***代理模式***, 分别是
+
+- JDK动态代理 
+
+  必须是***面向接口*** 的 只有实现了具体接口的类才能 生成代理对象
+
+- CGLIB字节码增强
+
+  对于没有实现了接口的类，也可以产生代理，产生***这个类的子类*** 的方式
+
+代理模式(Proxy Pattern):
+
+为其他对象提供一种代理以控制对这个对象的访问。在某些情况下，一个对象***不适合***或者***不能直接***引用另一个对象，而代理对象可以在客户端和目标对象之间起到***中介*** 的作用。
+
+- 优点	
+
+  职责清晰 代理对象 高扩展
+
+- 结构
+
+  一个是真正的要访问的对象(***目标类***) 另一个是***代理对象***
+
+  真正的对象与代理对象实现***同一个接口***
+
+  先访问代理类再访问真正要访问的对象
+
+- JDK动态代理
+
+  Java.lang.reflect.Proxy类可以直接生成一个代理对象
+
+  **Proxy.newProxyInstance():**产生代理类的实例。仅能代理实现至少一个接口的类
+
+  ​    ClassLoader：类加载器。固定写法，和被代理类使用相同的类加载器即可。
+
+  ​    Class[] interface：代理类要实现的接口。固定写法，和被代理类使用相同的接口即可。
+
+  ​    InvocationHandler：策略（方案）设计模式的应用。如何代理？
+
+   
+
+  **InvocationHandler****中的invoke****方法：**调用代理类的任何方法，此方法都会执行  
+
+  ​     Object proxy:代理对象本身的引用。一般用不着。
+
+  ​     Method method:当前调用的方法。
+
+  ​     Object[] args:当前方法用到的参数
+
+目标类接口：
+
+```java
+public interface WorkInter {
+	void workInDay(double money);
+	void workInNight(double money);
+}
+```
+
+目标类：
+
+```java
+public class Worker implements WorkInter{
+ 
+	@Override
+	public void workInDay(double money) {
+		System.out.println("workInDay");
+		
+	}
+	@Override
+	public void workInNight(double money) {
+		System.out.println("workInNight");
+	}
+}
+```
+
+代理类：
+
+```java
+public class JdkProxy {
+	@Test
+	public void run() {
+		WorkInter proxy = (WorkInter) Proxy.newProxyInstance(Worker.class.getClassLoader(), Worker.class.getInterfaces(), new InvocationHandler() {
+			
+			@Override
+			public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+ 
+				System.out.println("中介费"+((double)args[0])/2);
+				Object invoke = method.invoke(Worker.class.newInstance(), args);
+				
+				System.out.println("下班");
+				return invoke;
+			}
+		});
+		proxy.workInDay(500);
+		proxy.workInNight(1000);
+	}
+}
+```
+
+执行结果:
+
+![img](Review2.assets/20190618191839334.png)
 
 
 
+- CGLIB字节码增强
 
+  核心类：Enhancer
 
+  1. 没有接口，只有实现类。
+  2. 采用字节码增强框架 cglib，在运行时 创建目标类的子类，从而对目标类进行增强。
 
+  实现步骤：
 
+  1. 获得代理类的核心类Enhancer对象
+  2. 设置父类（目标类），setSuperclass（）方法，底层是创建目标类的子类
+  3. 设置回调函数enhancer.setCallback(new MethodInterceptor()) 
+  4. 创建代理对象 create()方法
 
+目标类：
 
+```java
+public class Worker{
+	public void workInDay(double money) {
+		System.out.println("workInDay");
+		
+	}
+	public void workInNight(double money) {
+		System.out.println("workInNight");
+	}
+}
+```
 
+代理类：
 
-
-
-
-
-
-
-
-
-
-
+```java
+public class WorkerProxy {
+	@Test
+	public void run() {
+			Enhancer enhancer=new Enhancer();
+			//2.设置父类（目标类），setSuperclass（）方法，底层是创建目标类的子类
+			enhancer.setSuperclass(Worker.class);
+			//3.设置回调函数enhancer.setCallback(new MethodInterceptor()) 
+			
+			enhancer.setCallback(new MethodInterceptor() {
+				    *//**
+				 * Object object:代理对象
+				 * Method method:目标类的方法
+				 * Object[] args:方法的形参
+				 * MethodProxy methodProxy:方法的代理对象
+				 * 
+				 *//*
+				@Override
+				public Object intercept(Object object, Method method, Object[] args, MethodProxy methodProxy) throws Throwable {
+					// TODO Auto-generated method stub
+					//开启事务
+					//前置通知
+					
+					System.out.println("代理收取费用"+ (double)args[0]/2);
+					//执行目标方法，需要目标类实例
+					Object invoke = method.invoke(Worker.class.newInstance(), (double)args[0]/2);
+					
+					//后置通知
+					
+					System.out.println("go  home~~~~~");
+					return invoke;
+				}
+			});
+			
+			//4.创建代理对象 create()方法
+			Worker workerPeoxy = (Worker) enhancer.create();
+			
+			workerPeoxy.workInDay(500);
+			workerPeoxy.workInNight(1000);
+	}
+}
+```
 
 
 
