@@ -96,13 +96,71 @@ https://blog.csdn.net/u013068377/article/details/78921720
 
 JWT Oauth2 Shiro
 
+- JWT(JSON Web Token)
 
+  - JWT是一个含***签名***并携带***用户相关信息***的加密串，页面请求校验登录接口时，***请求头***中携带JWT串到***后端服务***，后端通过签名加密串匹配***校验***，保证信息未被篡改。校验通过则认为是可靠的请求，将***正常返回数据***。 
 
+  - 使用情况
 
+    授权: 解决单点登陆问题 服务端不用记录用户状态信息(无状态)
 
+    信息交换: 各个服务之间安全传输信息
 
+  - 结构
 
+    头信息、有效载荷、签名  (xxx.yyy.zzz)
 
+    - header: 头信息
+
+    由两部分组成，***令牌类型***（即：JWT）、***散列算法***（HMAC、RSASSA、RSASSA-PSS等），
+
+    例如：
+
+    ```json
+    {
+      "alg": "HS256",
+      "typ": "JWT"
+    }
+    ```
+
+    然后，这个JSON被编码为***Base64Url***，形成JWT的第一部分。
+
+    - Playload(有效载荷)
+
+      其中包含***claims***。claims是关于实体（常用的是用户信息）和其他数据的声明，claims有三种类型:
+
+       			**Registered claims：** 这些是一组预定义的claims，非强制性的，但是推荐使用， iss（发行人）， exp（到期时间）， sub（主题）， aud（观众）等；
+       			**Public claims:** 自定义claims，注意不要和JWT注册表中属性冲突，[这里可以查看JWT注册表](https://www.iana.org/assignments/jwt/jwt.xhtml)
+      			 **Private claims:** 这些是自定义的claims，用于在同意使用这些claims的各方之间共享信息，它们既不是Registered claims，也不是Public claims。
+
+      ```json
+      {
+        "sub": "1234567890",
+        "name": "John Doe",
+        "admin": true
+      }
+      ```
+
+      然后，再经过Base64Url编码，形成JWT的第二部分
+
+    - Signature
+
+      要创建签名部分，必须采用编码的Header，编码的Payload，秘钥，Header中指定的算法，并对其进行签名。
+
+      例如，如果要使用HMAC SHA256算法，将按以下方式创建签名：
+
+      ```JSON
+      HMACSHA256(
+        base64UrlEncode(header) + "." +
+        base64UrlEncode(payload),
+        secret)
+      ```
+
+- 项目中实际应用
+
+  ![架构图](Review2.assets/20180906132049199)
+
+  ![流程图](Review2.assets/20180906132531764)			 
 
 
 
@@ -297,6 +355,4 @@ public class WorkerProxy {
 	}
 }
 ```
-
-
 
