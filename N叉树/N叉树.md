@@ -132,7 +132,30 @@
     }
     ```
 
-    
+- N叉树的经典递归即解法
+
+  - "自顶向上" (由结点-自结点) top_down(root, params)
+
+    ```java
+    1. 对于 null 节点返回一个特定值
+    2. 如果有需要，对当前答案 answer 进行更新                         // answer <-- params
+    3. for each child node root.children[k]:
+    4.      ans[k] = top_down(root.children[k], new_params[k])  // new_params <-- root.val, params
+    5. 如果有需要，返回答案 answer                                 // answer <-- all ans[k]
+    ```
+
+  - "自底向下" (由子结点向父结点) bottom_up(root)
+
+    ```java
+    1.对于 null 节点返回一个特定值
+    2.for each child node root.children[k]:
+    3.    ans[k] = bottom_up(root.children[k]) // 为每个子节点递归地调用函数
+    4. 返回答案 answer                          // answer <- root.val, all ans[k]
+    ```
+
+  - N叉树的深度: 从个根结点到最远叶子节点的最长路径上的节点总数
+
+  
 
 
 
